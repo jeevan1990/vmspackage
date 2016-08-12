@@ -1,0 +1,180 @@
+
+create or replace PACKAGE CREATE_NEW_PERSON_PKG AS
+   -- Adds a person
+   PROCEDURE ADD_PERSON(v_attachmet_photo BLOB,
+  v_attachmet_proof BLOB,
+   v_attachmet_fingerprint BLOB,
+   v_person_details PERSON_DETAILS_RECORD,
+   v_prsId NUMBER,
+   v_statcode  OUT NUMBER,
+   v_success_msg OUT  VARCHAR2,
+   v_error_msg OUT  VARCHAR2
+  );
+  
+  PROCEDURE ADD_FINGERPRINT(
+  v_attachmet_fingerprint BLOB,
+  v_prsId NUMBER,
+  v_personId NUMBER,
+  v_fingerindex NUMBER,
+  v_statcode  OUT NUMBER,
+  v_success_msg OUT  VARCHAR2,
+  v_error_msg OUT  VARCHAR2   
+  );
+  
+END CREATE_NEW_PERSON_PKG;
+
+/
+
+
+create or replace PACKAGE BODY CREATE_NEW_PERSON_PKG AS
+PROCEDURE ADD_PERSON(v_attachmet_photo BLOB,
+  v_attachmet_proof BLOB,
+   v_attachmet_fingerprint BLOB,
+   v_person_details PERSON_DETAILS_RECORD,
+   v_prsId NUMBER,
+   v_statcode  OUT NUMBER,
+   v_success_msg OUT  VARCHAR2,
+   v_error_msg OUT  VARCHAR2
+  )
+  
+  IS
+  v_personId NUMBER;
+  v_visitorId NUMBER;
+  BEGIN
+  v_personId :=person_entry_sequence.NEXTVAL;
+  select visitorId into v_visitorId FROM vms_visitor where description=v_person_details.visitorType; 
+  insert into vms_person_entry(personId,
+  firstName,
+  middleName,
+  lastname,
+  dateOfBirth,
+  address,
+  vehiclenumber,
+  visitortype,
+  addressprooftype,
+  fingerprint, 
+  createdBy, 
+  modifiedBy,
+  createdDate, 
+  modifiedDate 
+  )
+values(v_personId,
+      v_person_details.firstName,
+      v_person_details.middleName,
+      v_person_details.lastName,
+      TO_DATE(v_person_details.dateOfBirth,'dd-mm-yyyy'),
+      v_person_details.address,
+      v_person_details.vehicleNumber,
+      v_visitorId,
+      v_person_details.addressProofType,
+      v_attachmet_fingerprint, 
+      v_prsId,
+      v_prsId,
+      sysdate,
+      sysdate
+      );
+      
+      insert into vms_attachment(personId, attachmenttype, attachmentname, attachment,createdBy,modifiedBy,createdDate,modifiedDate)
+values(v_personId,'Profile Picture',v_personId||'_Photo',v_attachmet_photo,v_prsId,v_prsId,sysdate,sysdate);
+
+      insert into vms_attachment(personId, attachmenttype, attachmentname, attachment,createdBy,modifiedBy,createdDate,modifiedDate)
+values(v_personId,'Address Proof',v_personId||'_Address',v_attachmet_proof,v_prsId,v_prsId,sysdate,sysdate);
+  
+  if (v_person_details.visitorType='Service Personnel') then
+  
+  insert into vms_servicepersonnel(personId ,rank ,officerId,createdBy,modifiedBy,createdDate,modifiedDate)
+values(v_personId,v_person_details.rank,v_person_details.officerId,v_prsId,v_prsId,sysdate,sysdate);  
+ 
+  elsif (v_person_details.visitorType='Family') then
+  
+   insert into vms_family(personId ,dependentId  ,dependentOfficerId ,relation,createdBy,modifiedBy,createdDate,modifiedDate)
+values(v_personId,v_person_details.dependentId,v_person_details.dependentOfficerId,v_person_details.relation,v_prsId,v_prsId,sysdate,sysdate);
+  
+  elsif (v_person_details.visitorType='Guest') then
+  
+   insert into vms_guest(personId ,personToMeet,createdBy,modifiedBy,createdDate,modifiedDate)
+values(v_personId,v_person_details.personToMeet,v_prsId,v_prsId,sysdate,sysdate);
+   
+  elsif (v_person_details.visitorType='Vendor') then
+  
+   insert into vms_vendor(personId ,personToMeet,vendorId  ,vendorName ,vendorAddress ,createdBy,modifiedBy,createdDate,modifiedDate)
+values(v_personId,v_person_details.personToMeet,v_person_details.vendorId,v_person_details.vendorName,v_person_details.vendorAddress,v_prsId,v_prsId,sysdate,sysdate);
+  
+  elsif (v_person_details.visitorType='Contractor') then
+  
+   insert into vms_contractor(personId ,personToMeet,contractorId  ,contractorName ,contractorAddress ,createdBy,modifiedBy,createdDate,modifiedDate)
+values(v_personId,v_person_details.personToMeet,v_person_details.contractorId,v_person_details.contractorName,v_person_details.contractorAddress,v_prsId,v_prsId,sysdate,sysdate);
+  
+  end if;
+ v_statcode :=0;
+ v_success_msg :=v_personId;
+ commit;
+ EXCEPTION
+ WHEN OTHERS THEN
+ rollback;
+ v_statcode :=100;
+ v_error_msg :='ERROR '||SUBSTR(SQLERRM,1,100)||'SQLCODE '||SQLCODE;
+END ADD_PERSON;
+
+PROCEDURE ADD_FINGERPRINT(
+  v_attachmet_fingerprint BLOB,
+  v_prsId NUMBER,
+  v_personId NUMBER,
+  v_fingerindex NUMBER,
+  v_statcode  OUT NUMBER,
+  v_success_msg OUT  VARCHAR2,
+  v_error_msg OUT  VARCHAR2   
+  )
+  
+  IS
+  
+  v_count NUMBER;
+  v_query1 VARCHAR2(1000);
+  v_query2 VARCHAR2(1000);
+  BEGIN
+  v_statcode :=0;
+  
+  v_query1:='select count(*) from vms_fingerprint where PERSONID=:1 and FINGERINDEX=:2';
+  
+  execute immediate v_query1 into v_count using v_personId,v_fingerindex ;
+  
+  if v_count=1 then
+  
+  v_query2:='update vms_fingerprint set FINGERPRINT=:1,MODIFIEDBY=:2,MODIFIEDDATE=sysdate where PERSONID=:3 and FINGERINDEX=:4';
+  execute immediate v_query2 using v_attachmet_fingerprint,v_prsId,v_personId,v_fingerindex;
+  else
+
+  insert into vms_fingerprint(
+  personId, 
+  fingerindex,
+  fingerprint,
+  createdBy, 
+  modifiedBy,
+  createdDate,
+  modifiedDate)
+  values(
+  v_personId,
+  v_fingerindex, 
+  v_attachmet_fingerprint,
+  v_prsId,
+  v_prsId,
+  sysdate,
+  sysdate
+  );
+  
+  end if;
+
+	commit;
+  v_success_msg:='Fingerprint with index '||v_fingerindex||' for Person Id '||v_personId||' successfully enrolled.';  
+  EXCEPTION
+ WHEN OTHERS THEN
+ rollback;
+ v_statcode :=100;
+ v_error_msg :='ERROR '||SUBSTR(SQLERRM,1,100)||'SQLCODE '||SQLCODE;
+ 
+END ADD_FINGERPRINT;
+END CREATE_NEW_PERSON_PKG;
+
+/
+
+show errors;

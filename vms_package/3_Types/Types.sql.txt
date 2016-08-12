@@ -1,0 +1,45 @@
+
+create or replace TYPE DROPDOWN_RECORD AS OBJECT
+(
+  dropdownId integer,
+  description VARCHAR2(100),
+  dropdownName VARCHAR2(100),
+  disabled VARCHAR2(10)
+);
+
+/
+
+
+create or replace TYPE DROPDOWN_LIST IS TABLE OF DROPDOWN_RECORD;
+
+/
+
+
+
+create or replace TYPE PERSON_DETAILS_RECORD AS OBJECT
+(
+personId integer,
+firstName varchar2(100), 
+middleName varchar2(100),
+lastName varchar2(100),
+dateOfBirth varchar2(50), 
+address varchar2(500),
+vehicleNumber varchar2(50),
+visitorType varchar2(50), 
+addressProofType varchar2(50),
+rank varchar2(50),
+officerId varchar2(50),
+dependentId varchar2(50),
+dependentOfficerId varchar2(50),
+relation varchar2(500),
+personToMeet varchar2(50),
+vendorId varchar2(50),
+vendorName varchar2(50),
+vendorAddress varchar2(500),
+contractorId varchar2(50),
+contractorName varchar2(50),
+contractorAddress varchar2(500)
+);
+
+
+/

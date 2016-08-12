@@ -1,0 +1,160 @@
+CREATE TABLE vms_person_entry
+(
+ personId NUMBER,
+ firstName varchar2(100),
+ middleName varchar2(100),
+ lastName varchar2(100),
+ dateOfBirth DATE,
+ address varchar2(500),
+ vehicleNumber varchar2(50),
+ visitorType NUMBER,
+ addressProofType varchar2(50),
+ fingerprint BLOB,
+ createdBy NUMBER,
+ modifiedBy NUMBER,
+ createdDate DATE,
+ modifiedDate DATE
+);
+
+/
+
+
+
+CREATE TABLE vms_attachment
+(
+  personId NUMBER,
+  attachmentType varchar2(100),  
+  attachmentName varchar2(100), 
+  attachment BLOB,
+  createdBy NUMBER,
+  modifiedBy NUMBER,
+  createdDate DATE,
+  modifiedDate DATE 
+);
+
+
+/
+
+
+CREATE TABLE vms_visitor
+(
+  visitorId NUMBER,
+  description varchar2(100),  
+  createdBy  NUMBER,
+  createdDate DATE,
+  disabled varchar2(10) 
+);
+
+/
+
+
+CREATE TABLE vms_servicepersonnel
+(
+  personId NUMBER,
+  rank varchar2(50),  
+  officerId varchar2(50),
+  createdBy NUMBER,
+  modifiedBy NUMBER,
+  createdDate DATE,
+  modifiedDate DATE
+);
+
+
+/
+
+
+CREATE TABLE vms_family
+(
+  personId NUMBER,
+  dependentId varchar2(50),  
+  dependentOfficerId varchar2(50),
+  relation varchar2(500),
+  createdBy NUMBER,
+  modifiedBy NUMBER,
+  createdDate DATE,
+  modifiedDate DATE
+);
+
+
+/
+
+
+CREATE TABLE vms_guest
+(
+  personId NUMBER,
+  personToMeet varchar2(50),
+  createdBy NUMBER,
+  modifiedBy NUMBER,
+  createdDate DATE,
+  modifiedDate DATE
+);
+
+
+/
+
+
+CREATE TABLE vms_vendor
+(
+  personId NUMBER,
+  personToMeet varchar2(50),
+  vendorId varchar2(50), 
+  vendorName varchar2(50),
+  vendorAddress varchar2(500),
+  createdBy NUMBER,
+  modifiedBy NUMBER,
+  createdDate DATE,
+  modifiedDate DATE
+);
+
+
+/
+
+
+CREATE TABLE vms_contractor
+(
+  personId NUMBER,
+  personToMeet varchar2(50),
+  contractorId varchar2(50),
+  contractorName varchar2(50),
+  contractorAddress varchar2(500),
+  createdBy NUMBER,
+  modifiedBy NUMBER,
+  createdDate DATE,
+  modifiedDate DATE
+);
+
+
+/
+
+
+CREATE TABLE vms_fingerprint
+(
+  personId NUMBER,
+  fingerindex NUMBER,
+  fingerprint BLOB,
+  createdBy NUMBER,
+  modifiedBy NUMBER,
+  createdDate DATE,
+  modifiedDate DATE 
+);
+
+
+/
+
+CREATE TABLE vms_user
+(
+ personId NUMBER,
+ firstName varchar2(100),
+ lastName varchar2(100),
+ userName varchar2(100),
+ password varchar2(100),
+ groupId NUMBER, 
+ active varchar2(10),
+ createdBy NUMBER,
+ modifiedBy NUMBER,
+ createdDate DATE,
+ modifiedDate DATE
+);
+
+
+/

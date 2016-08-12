@@ -1,0 +1,30 @@
+
+
+CREATE SEQUENCE person_entry_sequence START WITH 10000 INCREMENT BY 1 NOCACHE NOCYCLE;
+
+/
+
+--select person_entry_sequence.NEXTVAL from dual;
+
+--select person_entry_sequence.CURRVAL from dual;
+
+
+
+insert into vms_visitor(visitorId,description,createdBy,createdDate,disabled)
+values(1,'Service Personnel',0,sysdate,'N');
+
+insert into vms_visitor(visitorId,description,createdBy,createdDate,disabled)
+values(2,'Employee',0,sysdate,'N');
+
+insert into vms_visitor(visitorId,description,createdBy,createdDate,disabled)
+values(3,'Family',0,sysdate,'N');
+
+insert into vms_visitor(visitorId,description,createdBy,createdDate,disabled)
+values(4,'Guest',0,sysdate,'N');
+
+insert into vms_visitor(visitorId,description,createdBy,createdDate,disabled)
+values(5,'Vendor',0,sysdate,'N');
+
+insert into vms_visitor(visitorId,description,createdBy,createdDate,disabled)
+values(6,'Contractor',0,sysdate,'N');
+

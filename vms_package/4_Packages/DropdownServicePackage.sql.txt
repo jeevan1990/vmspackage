@@ -1,0 +1,44 @@
+
+create or replace PACKAGE DROPDOWN_SERVICE_PKG AS
+PROCEDURE GET_DROPDOWN(
+   v_dropdown_list OUT DROPDOWN_LIST,
+   v_statcode  OUT NUMBER,
+   v_success_msg OUT  VARCHAR2,
+   v_error_msg OUT  VARCHAR2
+  );
+  
+ END DROPDOWN_SERVICE_PKG;
+
+/
+
+
+create or replace PACKAGE BODY DROPDOWN_SERVICE_PKG AS
+PROCEDURE GET_DROPDOWN(
+   v_dropdown_list OUT DROPDOWN_LIST,
+   v_statcode  OUT NUMBER,
+   v_success_msg OUT  VARCHAR2,
+   v_error_msg OUT  VARCHAR2
+  )
+  
+  IS
+  
+  v_query VARCHAR2(1000);
+  BEGIN
+  
+  v_query:='SELECT DROPDOWN_RECORD(dropdownId,description,dropdownName,disabled) FROM(select VISITORID dropdownId,DESCRIPTION,''VISITOR DROPDOWN'' dropdownName,DISABLED FROM vms_visitor)';
+  execute IMMEDIATE v_query BULK COLLECT into v_dropdown_list;
+  v_statcode :=0;
+  v_success_msg:='Dropdown values successfully fetched.';
+  EXCEPTION
+ WHEN OTHERS THEN
+ rollback;
+ v_statcode :=100;
+ v_error_msg :='ERROR '||SUBSTR(SQLERRM,1,100)||'SQLCODE '||SQLCODE;
+ 
+  END GET_DROPDOWN;
+
+END DROPDOWN_SERVICE_PKG;
+
+/
+
+show errors;

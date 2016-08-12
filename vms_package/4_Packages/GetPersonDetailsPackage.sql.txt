@@ -1,0 +1,186 @@
+
+
+create or replace PACKAGE GET_PERSON_DETAILS_PKG AS
+   -- Adds a person
+   PROCEDURE GET_PERSON(personId NUMBER,
+   v_person_details OUT PERSON_DETAILS_RECORD,
+   v_statcode  OUT NUMBER,
+   v_success_msg OUT  VARCHAR2,
+   v_error_msg OUT  VARCHAR2
+  );
+  
+  PROCEDURE GET_PERSON_PHOTO(personId NUMBER,
+   v_person_image OUT BLOB,
+   v_statcode  OUT NUMBER,
+   v_success_msg OUT  VARCHAR2,
+   v_error_msg OUT  VARCHAR2
+  );
+  
+  PROCEDURE GET_PERSON_FINGERPRINT(personId NUMBER,
+  v_fingerindex NUMBER,
+   v_person_fingerprint OUT BLOB,
+   v_statcode  OUT NUMBER,
+   v_success_msg OUT  VARCHAR2,
+   v_error_msg OUT  VARCHAR2
+  );
+  
+  PROCEDURE FIND_PERSON(personId NUMBER,
+   v_found OUT  VARCHAR2,
+   v_statcode  OUT NUMBER,
+   v_success_msg OUT  VARCHAR2,
+   v_error_msg OUT  VARCHAR2
+  );
+  
+  
+END GET_PERSON_DETAILS_PKG;
+
+/
+
+
+create or replace PACKAGE BODY GET_PERSON_DETAILS_PKG AS
+PROCEDURE GET_PERSON(personId NUMBER,
+   v_person_details OUT PERSON_DETAILS_RECORD,
+   v_statcode  OUT NUMBER,
+   v_success_msg OUT  VARCHAR2,
+   v_error_msg OUT  VARCHAR2
+  )
+  
+  IS
+  v_query1 VARCHAR2(1000);
+  v_query2 VARCHAR2(1000);
+  v_visitor_type VARCHAR2(100);
+  BEGIN
+  --select description into v_visitor_type from vms_visitor where visitorid=(select visitortype from vms_person_entry where personid=personId) ;
+  v_query2:= 'select description  from vms_visitor where visitorid=(select visitortype from vms_person_entry where personid=:1)' ;
+ 
+  execute immediate v_query2 into v_visitor_type using personId;
+  
+ 
+  if (v_visitor_type='Service Personnel') then
+  
+    v_query1:=' select PERSON_DETAILS_RECORD(PERSONID,FIRSTNAME,MIDDLENAME,LASTNAME,TO_CHAR(DATEOFBIRTH,''dd-mm-yyyy''),ADDRESS,VEHICLENUMBER,''Service Personnel'',ADDRESSPROOFTYPE,RANK,OFFICERID,'''','''','''','''','''','''','''','''','''','''') from (select vms_person_entry.PERSONID PERSONID,FIRSTNAME,MIDDLENAME,LASTNAME,DATEOFBIRTH,ADDRESS,VEHICLENUMBER,ADDRESSPROOFTYPE,RANK,OFFICERID 
+   from vms_person_entry,vms_servicepersonnel where vms_person_entry.PERSONID=vms_servicepersonnel.PERSONID  and   vms_person_entry.PERSONID=:1)';
+ 
+  elsif (v_visitor_type='Family') then
+  
+  v_query1:=' select PERSON_DETAILS_RECORD(PERSONID,FIRSTNAME,MIDDLENAME,LASTNAME,TO_CHAR(DATEOFBIRTH,''dd-mm-yyyy''),ADDRESS,VEHICLENUMBER,''Family'',ADDRESSPROOFTYPE,'''','''',DEPENDENTID,DEPENDENTOFFICERID,RELATION,'''','''','''','''','''','''','''') from (select vms_person_entry.PERSONID PERSONID,FIRSTNAME,MIDDLENAME,LASTNAME,DATEOFBIRTH,ADDRESS,VEHICLENUMBER,ADDRESSPROOFTYPE,DEPENDENTID,DEPENDENTOFFICERID,RELATION 
+ from vms_person_entry,vms_family where vms_person_entry.PERSONID=vms_family.PERSONID  and   vms_person_entry.PERSONID=:1)';
+    
+  elsif (v_visitor_type='Guest') then
+  
+  v_query1:=' select PERSON_DETAILS_RECORD(PERSONID,FIRSTNAME,MIDDLENAME,LASTNAME,TO_CHAR(DATEOFBIRTH,''dd-mm-yyyy''),ADDRESS,VEHICLENUMBER,''Guest'',ADDRESSPROOFTYPE,'''','''','''','''','''',PERSONTOMEET,'''','''','''','''','''','''') from (select vms_person_entry.PERSONID PERSONID,FIRSTNAME,MIDDLENAME,LASTNAME,DATEOFBIRTH,ADDRESS,VEHICLENUMBER,ADDRESSPROOFTYPE,PERSONTOMEET 
+ from vms_person_entry,vms_guest where vms_person_entry.PERSONID=vms_guest.PERSONID  and   vms_person_entry.PERSONID=:1)';
+    
+  elsif (v_visitor_type='Vendor') then
+  
+   v_query1:='select PERSON_DETAILS_RECORD(PERSONID,FIRSTNAME,MIDDLENAME,LASTNAME,TO_CHAR(DATEOFBIRTH,''dd-mm-yyyy''),ADDRESS,VEHICLENUMBER,''Vendor'',ADDRESSPROOFTYPE,'''','''','''','''','''',PERSONTOMEET,VENDORID,VENDORNAME,VENDORADDRESS,'''','''','''') from (select vms_person_entry.PERSONID PERSONID,FIRSTNAME,MIDDLENAME,LASTNAME,DATEOFBIRTH,ADDRESS,VEHICLENUMBER,ADDRESSPROOFTYPE,VENDORID,VENDORNAME,VENDORADDRESS,PERSONTOMEET  
+ from vms_person_entry,vms_vendor where vms_person_entry.PERSONID=vms_vendor.PERSONID  and   vms_person_entry.PERSONID=:1)';
+    
+  elsif (v_visitor_type='Contractor') then
+  
+  v_query1:='select PERSON_DETAILS_RECORD(PERSONID,FIRSTNAME,MIDDLENAME,LASTNAME,TO_CHAR(DATEOFBIRTH,''dd-mm-yyyy''),ADDRESS,VEHICLENUMBER,''Contractor'',ADDRESSPROOFTYPE,'''','''','''','''','''',PERSONTOMEET,'''','''','''',CONTRACTORID,CONTRACTORNAME,CONTRACTORADDRESS) from (select vms_person_entry.PERSONID PERSONID,FIRSTNAME,MIDDLENAME,LASTNAME,DATEOFBIRTH,ADDRESS,VEHICLENUMBER,ADDRESSPROOFTYPE,CONTRACTORID,CONTRACTORNAME,CONTRACTORADDRESS,PERSONTOMEET  
+ from vms_person_entry,vms_contractor where vms_person_entry.PERSONID=vms_contractor.PERSONID  and   vms_person_entry.PERSONID=:1)';
+  
+  elsif (v_visitor_type='Employee') then
+  
+   v_query1:='select PERSON_DETAILS_RECORD(PERSONID,FIRSTNAME,MIDDLENAME,LASTNAME,TO_CHAR(DATEOFBIRTH,''dd-mm-yyyy''),ADDRESS,VEHICLENUMBER,''Employee'',ADDRESSPROOFTYPE,'''','''','''','''','''','''','''','''','''','''','''','''') from (select vms_person_entry.PERSONID PERSONID,FIRSTNAME,MIDDLENAME,LASTNAME,DATEOFBIRTH,ADDRESS,VEHICLENUMBER,ADDRESSPROOFTYPE 
+ from vms_person_entry where vms_person_entry.PERSONID=:1)';
+  
+  end if;
+ 
+  execute immediate v_query1 into v_person_details using personId;
+ v_statcode :=0;
+ v_success_msg :='Details fetched successfully for Person Id '||personId;
+ EXCEPTION
+ WHEN OTHERS THEN
+ rollback;
+ v_statcode :=100;
+ v_error_msg :='ERROR '||SUBSTR(SQLERRM,1,100)||'SQLCODE '||SQLCODE;
+END GET_PERSON;
+
+PROCEDURE GET_PERSON_PHOTO(personId NUMBER,
+   v_person_image OUT BLOB,
+   v_statcode  OUT NUMBER,
+   v_success_msg OUT  VARCHAR2,
+   v_error_msg OUT  VARCHAR2
+  )
+  
+  IS
+   v_query1 VARCHAR2(1000);
+  BEGIN
+
+v_statcode :=0;
+ v_query1:= 'select attachment from vms_attachment where  PERSONID=:1 AND ATTACHMENTTYPE=''Profile Picture'||'''';
+
+  execute immediate v_query1 into v_person_image using personId;
+
+  v_success_msg:='Image fetched successfully';
+  EXCEPTION
+ WHEN OTHERS THEN
+ rollback;
+ v_statcode :=100;
+ v_error_msg :='ERROR '||SUBSTR(SQLERRM,1,100)||'SQLCODE '||SQLCODE;
+END GET_PERSON_PHOTO;
+
+PROCEDURE GET_PERSON_FINGERPRINT(personId NUMBER,
+  v_fingerindex NUMBER,
+   v_person_fingerprint OUT BLOB,
+   v_statcode  OUT NUMBER,
+   v_success_msg OUT  VARCHAR2,
+   v_error_msg OUT  VARCHAR2
+  )
+  
+  IS
+   v_query1 VARCHAR2(1000);
+  BEGIN
+
+v_statcode :=0;
+ v_query1:= 'select FINGERPRINT from vms_fingerprint where  PERSONID=:1 AND FINGERINDEX=:2';
+
+  execute immediate v_query1 into v_person_fingerprint using personId,v_fingerindex;
+
+  v_success_msg:='fingerprint fetched successfully';
+  EXCEPTION
+ WHEN OTHERS THEN
+ rollback;
+ v_statcode :=100;
+ v_error_msg :='ERROR '||SUBSTR(SQLERRM,1,100)||'SQLCODE '||SQLCODE;
+END GET_PERSON_FINGERPRINT;
+
+PROCEDURE FIND_PERSON(personId NUMBER,
+   v_found OUT  VARCHAR2,
+   v_statcode  OUT NUMBER,
+   v_success_msg OUT  VARCHAR2,
+   v_error_msg OUT  VARCHAR2
+  )
+  
+  IS
+    v_count NUMBER;
+    v_query VARCHAR2(1000);
+  BEGIN
+  v_statcode :=0;
+  v_query:='select count(*)  from vms_person_entry where personid=:1';
+  
+  execute immediate v_query into v_count using personId;
+  
+  if v_count=1 THEN
+    v_found:='YES';
+  ELSE
+     v_found:='NO';
+  END IF;  
+  
+  v_success_msg:=v_count;
+  EXCEPTION
+ WHEN OTHERS THEN
+ rollback;
+ v_statcode :=100;
+ v_error_msg :='ERROR '||SUBSTR(SQLERRM,1,100)||'SQLCODE '||SQLCODE;
+  END FIND_PERSON;
+
+END GET_PERSON_DETAILS_PKG;
+
+
+/
+
+
+show errors;
